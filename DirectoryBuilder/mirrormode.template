@@ -1,0 +1,7 @@
+# userPassword should match the password in slapd.conf (use "slappasswd")
+dn: cn=mirrormode,__DOMAIN__
+objectClass: top
+objectClass: person
+cn: mirrormode
+sn: mirrormode
+userPassword: __MIRRORMODE_PASS__

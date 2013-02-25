@@ -1,0 +1,61 @@
+#!/sbin/sh
+#
+# Start method for ldap/server:openldap
+# <benr@joyent.com>
+#
+#
+. /lib/svc/share/smf_include.sh
+
+#
+# Globals Here:
+
+CONFIG=/etc/openldap/slapd.conf
+URLS=ldaps:///
+
+# Create the tmp directory for pid & args files
+if [ ! -d /var/run/openldap ]
+then
+ mkdir -p /var/run/openldap
+ chown openldap:openldap /var/run/openldap
+fi
+
+# Create the data directory
+if [ ! -d /var/openldap ]
+then
+  mkdir /var/openldap
+  chown openldap:openldap /var/openldap
+fi
+
+if [ ! -f /var/log/openldap ]
+then 
+  touch /var/log/openldap 
+  chown openldap:openldap /var/log/openldap
+fi
+
+
+[ ! -f ${CONFIG} ] && exit $SMF_EXIT_ERR_CONFIG
+
+case "$1" in
+'start')
+        # Start OpenLDAP in LDAPS (SSL/TLS) only mode
+        /usr/lib/slapd -u openldap -g openldap -f ${CONFIG} -h "${URLS}"
+        ;;
+'stop')
+        if [ -f /var/run/openldap/slapd.pid ]
+        then
+                kill -HUP `cat /var/run/openldap/slapd.pid`
+        else
+                pkill -u openldap slapd
+        fi
+        ;;
+'refresh')
+        # Not supported by OpenLDAP
+        ;;
+*)
+        echo "Usage: $0 { start | stop | refresh }"
+        exit 1
+        ;;
+esac
+
+# Clear exit status.
+exit $SMF_EXIT_OK

@@ -1,0 +1,82 @@
+# Example RBAC Profile  (/etc/security/prof_attr)
+dn: cn=xVM Management,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisProfAttr
+objectClass: top
+cn: xVM Management
+SolarisAttrKeyValue: help=RtxvmMngmnt.html
+SolarisAttrLongDesc: xVM Administration
+
+# Put Primary Administrator in LDAP, just in case its not present on a nodes local file.
+dn: cn=Primary Administrator,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisProfAttr
+objectClass: top
+cn: Primary Administrator
+SolarisAttrKeyValue: auths=solaris.*,solaris.grant;help=RtPriAdmin.html
+SolarisAttrLongDesc: Can perform all administrative tasks
+
+dn: cn=Primary Administrator+SolarisKernelSecurityPolicy=suser+SolarisProfileType=cmd+SolarisProfileId=*,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisExecAttr
+objectClass: SolarisProfAttr
+objectClass: top
+cn: Primary Administrator
+SolarisKernelSecurityPolicy: suser
+SolarisProfileType: cmd
+SolarisProfileId: *
+SolarisAttrKeyValue: uid=0;gid=0
+
+# Example of a RBAC Meta-Profile (Profile of Profiles)
+dn: cn=Joyent Level 1,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisProfAttr
+objectClass: top
+cn: Joyent Level 1
+SolarisAttrKeyValue: profiles=Zone Management,xVM Administration;help=RtJoyentLvl1.html
+SolarisAttrLongDesc: Joyent General Staff
+
+dn: cn=Joyent Level 2,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisProfAttr
+objectClass: top
+cn: Joyent Level 2
+SolarisAttrKeyValue: profiles=Network Management,Network Management,Process Management,ZFS File System Management,Zone Management,Cron Management,File System Management,Maintenance and Repair,xVM Administration,Service Management;help=RtJoyentLvl2.html
+SolarisAttrLongDesc: Joyent Intermediate Engineers
+
+dn: cn=Joyent Level 3,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisProfAttr
+objectClass: top
+cn: Joyent Level 3
+SolarisAttrKeyValue: profiles=Primary Administrator;auths=solaris.*,solaris.grant;help=RtJoyentLvl2.html
+SolarisAttrLongDesc: Joyent Senior Engineers
+
+# Example of RBAC Exec (give UID=0 to "xVM Management" profile calling "xm")
+dn: cn=xVM Management+SolarisKernelSecurityPolicy=solaris+SolarisProfileType=cmd+SolarisProfileId=/usr/sbin/xm,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisExecAttr
+objectClass: SolarisProfAttr
+objectClass: top
+cn: xVM Management
+SolarisKernelSecurityPolicy: solaris
+SolarisProfileType: cmd
+SolarisProfileId: /usr/sbin/xm
+SolarisAttrKeyValue: uid=0
+
+# Example of RBAC Exec (give UID=0 to "xVM Management" profile calling "virsh")
+dn: cn=xVM Management+SolarisKernelSecurityPolicy=solaris+SolarisProfileType=cmd+SolarisProfileId=/bin/virsh,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisExecAttr
+objectClass: SolarisProfAttr
+objectClass: top
+cn: xVM Management
+SolarisKernelSecurityPolicy: solaris
+SolarisProfileType: cmd
+SolarisProfileId: /bin/virsh
+SolarisAttrKeyValue: uid=0
+
+# Example of RBAC Exec (give UID=0 to "xVM Management" profile calling "virt-install")
+dn: cn=xVM Management+SolarisKernelSecurityPolicy=solaris+SolarisProfileType=cmd+SolarisProfileId=/bin/virt-install,ou=SolarisProfAttr,__DOMAIN__
+objectClass: SolarisExecAttr
+objectClass: SolarisProfAttr
+objectClass: top
+cn: xVM Management
+SolarisKernelSecurityPolicy: solaris
+SolarisProfileType: cmd
+SolarisProfileId: /bin/virt-install
+SolarisAttrKeyValue: uid=0
+
+

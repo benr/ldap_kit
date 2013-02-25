@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='export'>
+  <service name='network/ldap/server' type='service' version='0'>
+    <instance name='openldap' enabled='false'>
+      <dependency name='network' grouping='require_all' restart_on='error' type='service'>
+        <service_fmri value='svc:/milestone/network:default'/>
+      </dependency>
+      <dependency name='filesystem-local' grouping='require_all' restart_on='none' type='service'>
+        <service_fmri value='svc:/system/filesystem/local:default'/>
+      </dependency>
+      <exec_method name='start' type='method' exec='/var/svc/method/openldap-server start' timeout_seconds='60'/>
+      <exec_method name='stop' type='method' exec='/var/svc/method/openldap-server stop' timeout_seconds='60'/>
+      <property_group name='startd' type='framework'>
+        <propval name='ignore_error' type='astring' value='core,signal'/>
+      </property_group>
+      <template>
+        <common_name>
+          <loctext xml:lang='C'>slapd - OpenLDAP LDAP server</loctext>
+        </common_name>
+        <documentation>
+          <manpage title='slapd' section='8' manpath='/usr/openldap/man'/>
+          <doc_link name='openldap.org' uri='http://www.openldap.org'/>
+        </documentation>
+      </template>
+    </instance>
+    <stability value='Evolving'/>
+  </service>
+</service_bundle>

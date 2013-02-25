@@ -1,0 +1,11 @@
+dn: automountKey=/net,automountMapName=auto_master,__DOMAIN__
+objectClass: automount
+objectClass: top
+automountKey: /net
+automountInformation: -hosts  -nosuid,nobrowse
+
+dn: automountKey=/home,automountMapName=auto_master,__DOMAIN__
+objectClass: automount
+objectClass: top
+automountKey: /home
+automountInformation: auto_home -nobrowse

@@ -1,0 +1,26 @@
+dn: ou=policies,__DOMAIN__
+objectClass: organizationalUnit
+objectClass: top
+ou: policies
+
+dn: cn=default,ou=policies,__DOMAIN__
+cn: default
+objectClass: pwdPolicy
+objectClass: person
+objectClass: top
+pwdAllowUserChange: TRUE
+pwdAttribute: userPassword
+pwdCheckQuality: 2
+pwdExpireWarning: 600
+pwdFailureCountInterval: 30
+pwdGraceAuthNLimit: 5
+pwdInHistory: 5
+pwdLockout: TRUE
+pwdLockoutDuration: 0
+pwdMaxAge: 0
+pwdMaxFailure: 5
+pwdMinAge: 0
+pwdMinLength: 5
+pwdMustChange: FALSE
+pwdSafeModify: FALSE
+sn: PPolicy

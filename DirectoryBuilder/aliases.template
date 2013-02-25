@@ -1,0 +1,6 @@
+dn: cn=operator,ou=aliases,__DOMAIN__
+objectClass: mailGroup
+objectClass: top
+mail: operator
+mgrpRFC822MailMember:: CXJvb3Q=
+cn: operator

@@ -1,0 +1,15 @@
+###  Used by 'ldapclient' to configure the client per RFC 2307 (DUA = Directory User Agent)
+###
+dn: cn=default,ou=profile,__DOMAIN__
+objectClass: top
+objectClass: DUAConfigProfile
+cn: default
+defaultServerList: __LDAPSERVERS__
+preferredServerList: __PREFSERVERS__
+defaultSearchBase: __DOMAIN__
+followReferrals: FALSE
+defaultSearchScope: one
+searchTimeLimit: 30
+profileTTL: 43200
+credentialLevel: proxy
+bindTimeLimit: 10

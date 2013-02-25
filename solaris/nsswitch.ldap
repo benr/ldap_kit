@@ -1,0 +1,41 @@
+#
+# +Joyent /etc/nsswitch.ldap
+#
+
+# Search files before LDAP.
+passwd:     files ldap
+group:      files ldap
+
+# Search Files, then LDAP, then DNS
+hosts:      files ldap dns
+
+# Note that IPv4 addresses are searched for in all of the ipnodes databases
+# before searching the hosts databases.
+ipnodes:    files ldap
+
+# LDAP then Files, we omit [NOTFOUND=return] so that we don't need to maintain all these files in LDAP.
+networks:   ldap files
+protocols:  ldap files
+rpc:        ldap files
+ethers:     ldap files
+netmasks:   ldap files
+bootparams: ldap files
+publickey:  ldap files
+
+netgroup:   ldap
+
+automount:  files ldap
+aliases:    files ldap
+
+# for efficient getservbyname() avoid ldap
+services:   files ldap
+
+printers:   user files ldap
+
+auth_attr:  files ldap
+prof_attr:  files ldap
+
+project:    files ldap
+
+tnrhtp:     files ldap
+tnrhdb:     files ldap

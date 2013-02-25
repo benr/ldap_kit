@@ -1,0 +1,119 @@
+dn: __DOMAIN__
+objectClass: domain
+objectClass: top
+objectClass: nisDomainObject
+dc: __NISDC__
+nisDomain: __NISDOMAIN__
+
+## DIT Structure: ######################################
+
+dn: ou=people,__DOMAIN__
+ou: people
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=group,__DOMAIN__
+ou: group
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=rpc,__DOMAIN__
+ou: rpc
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=protocols,__DOMAIN__
+ou: protocols
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=networks,__DOMAIN__
+ou: networks
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=netgroup,__DOMAIN__
+ou: netgroup
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=aliases,__DOMAIN__
+ou: aliases
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=hosts,__DOMAIN__
+ou: hosts
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=services,__DOMAIN__
+ou: services
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=ethers,__DOMAIN__
+ou: ethers
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=profile,__DOMAIN__
+ou: profile
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=printers,__DOMAIN__
+ou: printers
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=projects,__DOMAIN__
+ou: projects
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=SolarisAuthAttr,__DOMAIN__
+ou: SolarisAuthAttr
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=SolarisProfAttr,__DOMAIN__
+ou: SolarisProfAttr
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=Timezone,__DOMAIN__
+ou: Timezone
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=ipTnet,__DOMAIN__
+ou: ipTnet
+objectClass: top
+objectClass: organizationalUnit
+
+####### NFS AUTOMOUNT #####################################
+
+### auto_home
+dn: automountMapName=auto_home,__DOMAIN__
+automountMapName: auto_home
+objectClass: top
+objectClass: automountMap
+
+### auto_direct
+dn: automountMapName=auto_direct,__DOMAIN__
+automountMapName: auto_direct
+objectClass: top
+objectClass: automountMap
+
+### auto_master
+dn: automountMapName=auto_master,__DOMAIN__
+automountMapName: auto_master
+objectClass: top
+objectClass: automountMap
+
+### auto_shared
+dn: automountMapName=auto_shared,__DOMAIN__
+automountMapName: auto_shared
+objectClass: top
+objectClass: automountMap

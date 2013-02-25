@@ -1,0 +1,6 @@
+dn: cn=proxyagent,ou=profile,__DOMAIN__
+objectClass: top
+objectClass: person
+cn: proxyagent
+sn: proxyagent
+userPassword: __PROXYPASS__

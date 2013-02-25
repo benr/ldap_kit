@@ -1,0 +1,8 @@
+dn: cn=admins,ou=netgroup,__DOMAIN__
+objectClass: nisNetgroup
+objectClass: top
+cn: admins
+nisNetgroupTriple: (machine1,user1,domain1)
+nisNetgroupTriple: (machine2,user2,domain2)
+memberNisNetgroup: anotherNetGroup
+description: Sampe Admin NetGroup

@@ -1,0 +1,7 @@
+dn: cn=quadra.cuddlelabs.com+ipHostNumber=10.0.0.18,ou=Hosts,__DOMAIN__
+objectClass: ipHost
+objectClass: device
+objectClass: top
+cn: quadra.cuddlelabs.com
+cn: quadra
+ipHostNumber: 10.0.0.18

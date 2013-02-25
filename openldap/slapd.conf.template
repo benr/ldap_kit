@@ -1,0 +1,102 @@
+#                                               +Joyent Systems Engineering
+#
+# OpenDLAP Configuration
+# v1.1          11/30/10
+#
+# GENERATED FROM TEMPLATE ON: __DATE__
+#                    HOST: __HOSTNAME__
+#                  SUFFIX: __DIT_SUFFIX__
+#
+include         /etc/openldap/schema/core.schema
+include         /etc/openldap/schema/cosine.schema
+include         /etc/openldap/schema/inetorgperson.schema
+include         /etc/openldap/schema/nis.schema
+include		/etc/openldap/schema/duaconf.schema
+include         /etc/openldap/schema/consolidatedSolaris.schema
+include		/etc/openldap/schema/ppolicy.schema
+
+pidfile         /var/run/openldap/slapd.pid
+argsfile        /var/run/openldap/slapd.args
+
+#######################################################################
+# SSL/TLS
+#######################################################################
+
+# CA signed certificate and server cert entries: 
+
+TLSCipherSuite 		HIGH:MEDIUM:+SSLv2 
+TLSCACertificateFile 	__TLS_CA_CERT__
+TLSCertificateFile 	__TLS_SRV_CERT__
+TLSCertificateKeyFile	__TLS_SRV_KEY__
+
+# Do not require client cert verification:
+TLSVerifyClient never
+
+
+#######################################################################
+# BDB database definitions      
+#######################################################################
+
+database        bdb             
+suffix          "__DIT_SUFFIX__"
+rootdn          "cn=Directory Manager,__DIT_SUFFIX__"
+## Password generated with "slappasswd":
+rootpw          __ROOTDN_PASS__
+directory       /var/openldap
+## SyncProv for MirrorMode
+overlay syncprov
+## Password Policy
+overlay ppolicy
+ppolicy_hash_cleartext
+## Audit Log Overlay
+overlay auditlog
+auditlog /var/openldap/openldap_auditlog
+
+index   objectClass     eq      
+index   cn              pres,eq
+index   uid             pres,eq
+index	uidNumber	pres,eq
+
+## Force Authenicated Access:
+require authc
+
+## ACL:
+access to attrs=userPassword
+ by dn="cn=proxyagent,ou=profile,__DIT_SUFFIX__" read
+ by dn="cn=mirrormode,__DIT_SUFFIX__" read
+ by self	write
+ by * 		auth
+
+access to * 
+ by dn="cn=proxyagent,ou=profile,__DIT_SUFFIX__" read
+ by self 	read
+ by users 	read
+ by * 		auth
+
+
+########################################################################
+# MirrorMode SyncRepl
+########################################################################
+
+# Global section
+serverID    1
+# database section
+
+# syncrepl directive
+syncrepl      rid=001
+       provider=ldaps://__MIRROR_PEER_IP__
+       bindmethod=simple
+       binddn="cn=mirrormode,__DIT_SUFFIX__"
+       credentials=__MIRROR_PASS__
+       searchbase="__DIT_SUFFIX__"
+       schemachecking=on
+       type=refreshAndPersist
+       retry="60 +"
+       tls_cacert=__TLS_CA_CERT__
+       tls_cert=__TLS_SRV_CERT__
+       tls_key=__TLS_SRV_KEY__
+       tls_reqcert=demand
+
+mirrormode on
+
+# EOF.

@@ -1,0 +1,147 @@
+#!/bin/bash
+#
+#
+# Joyent LDAP Client Deployment Script
+# <benr@joyent.com>
+#
+# Created for: __DIT_SUFFIX__
+#         on:  __DATE__
+#       from:  __HOST__
+#
+
+################################################################################
+BASE=..
+
+
+usage ()
+{
+ echo "USAGE: $0 [ -i | -u ] -h <node>"
+
+
+ exit
+}
+
+install ()
+{
+
+
+ # Fix hostfile.  Not required because later we use /etc/inet/hosts instead of /etc/hosts
+ #ssh $HOST 'if [ -h /etc/hosts ]; then echo "Host file is OK."; hostname; else echo "Fixing host file linkage."; mv /etc/hosts /etc/inet/hosts; cd /etc; ln -s ./inet/hosts hosts; fi'
+
+ # Setup PAM & NS
+ ssh $HOST 'cp -p /etc/pam.conf /etc/pam.conf.orig'
+ ssh $HOST 'cp -p /etc/nsswitch.conf /etc/nsswitch.conf.orig'
+ scp $BASE/solaris/pam.conf $HOST:/etc/pam.conf
+ scp $BASE/solaris/nsswitch.ldap $HOST:/etc/nsswitch.ldap
+ ssh $HOST 'chmod 644 /etc/pam.conf /etc/nsswitch.ldap'
+ ssh $HOST 'chown root:sys /etc/pam.conf /etc/nsswitch.ldap'
+
+
+ # Disable Automount
+ ssh $HOST 'svcadm disable autofs && umount /home'
+
+ # Create Admin Home dir
+ ssh $HOST 'mkdir /home/admin && chown root:staff /home/admin && chmod 1770 /home/admin'
+ scp $BASE/home/.* $HOST:/home/admin/
+ ssh $HOST 'mkdir /home/admin/.ssh && chmod 700 /home/admin/.ssh && touch /home/admin/.bash_history'
+
+ ssh $HOST <<HOMEY
+	mkdir /home/admin/.ssh
+	chown root:staff /home/admin/.ssh
+	chmod 750 /home/admin/.ssh
+	echo "PATH=/bin:/sbin:/usr/sbin:/opt/local/bin:/usr/sfw/bin" > /home/admin/.ssh/environment	
+	chown root:staff /home/admin/.ssh/environment
+	chmod 440 /home/admin/.ssh/environment
+
+	# Need to just inject our standard SSH configs instead:
+	echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config
+        echo "Host *" >> /etc/ssh/ssh_config
+        echo "  StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+        echo "  UserKnownHostsFile=/dev/null" >> /etc/ssh/ssh_config
+        echo "  LogLevel ERROR" >> /etc/ssh/ssh_config
+HOMEY
+ 
+ # Setup Domain & Hostfile for TLS
+ ssh $HOST 'echo "__NISDOMAIN__" > /etc/defaultdomain'
+ ssh $HOST 'echo "__SERVER1_HOSTENTRY__" >> /etc/inet/hosts'
+ ssh $HOST 'echo "__SERVER2_HOSTENTRY__" >> /etc/inet/hosts'
+
+ # Copy in TLS Security Databases
+ scp $BASE/certdb/*.db $HOST:/var/ldap
+ ssh $HOST 'chmod 700 /var/ldap/*.db'
+
+ # Configure the client:
+ ssh $HOST 'ldapclient manual \
+		-a authenticationMethod=tls:simple   \
+  		-a certificatePath=/var/ldap   \
+		-a credentialLevel=proxy \
+		-a proxyDN=cn=proxyagent,ou=profile,__DIT_SUFFIX__ \
+	 	-a proxyPassword="__PROXY_PASS__" \
+		-a defaultSearchBase=__DIT_SUFFIX__   \
+		-a preferredServerList=__PREFSERVERS__ \
+		-a defaultServerList=__LDAPSERVERS__  \
+		-v'
+}
+
+uninstall ()
+{
+ ssh $HOST 'ldapclient uninit'
+ ssh $HOST 'cp -p /etc/pam.conf.orig /etc/pam.conf'
+ ssh $HOST 'cp -p /etc/nsswitch.conf.orig /etc/nsswitch.conf'
+ ssh $HOST 'rm -f /var/ldap/* && svcadm disable ldap/client'
+}
+
+ssh_check ()
+{
+
+ if `ssh $HOST "uname -a >/dev/null"`
+ then
+  echo " ----"
+ else
+  echo "Unable to SSH to $HOST"
+  exit
+ fi
+
+}
+
+################################################################################
+# Options Handler:
+
+while getopts "iuh:" OPTION
+do
+     case $OPTION in
+         i) 
+	     INSTALL="YES"
+	     ;;
+         h)
+	     HOST=$OPTARG
+             ;;
+         u)
+	     UNINSTALL="YES"	
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
+if [[ ! $HOST ]]
+then
+ 	usage
+else
+	ssh_check
+fi
+
+if [[ $INSTALL ]]
+then 
+ install 
+elif [[ $UNINSTALL ]]
+then
+ uninstall
+else
+ usage
+fi
+
+
+################################################################################

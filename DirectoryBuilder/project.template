@@ -1,0 +1,8 @@
+dn: SolarisProjectName=apache,ou=projects,__DOMAIN__
+objectClass: SolarisProject      
+objectClass: top                 
+SolarisProjectName: apache
+SolarisProjectID: 103    
+description: Apache Web Server
+SolarisProjectAttr: project.max-lwps=(priv,1000,deny);project.cpu-shares=(priv,100,none);project.cpu-cap=(priv,150,deny)
+memberUid: www  

@@ -1,0 +1,19 @@
+#
+# Preperation on home dir.
+#
+  cd /home/admin
+  mkdir .ssh
+  chmod 750 .ssh
+  chown root:staff .ssh
+   
+  # You must add "PermitUserEnvironment yes" to /etc/ssh/sshd_config
+  echo "PATH=/bin:/sbin:/usr/sbin:/opt/local/bin:/usr/sfw/bin" > .ssh/environment
+  chmod root:staff .ssh/environment
+  chmod 440 .ssh/environment
+
+
+# Add the following to /etc/ssh/ssh_config to avoid errors due to lack of access to known_hosts file:
+# Host *
+#    StrictHostKeyChecking no 
+#    UserKnownHostsFile=/dev/null 
+#    LogLevel ERROR

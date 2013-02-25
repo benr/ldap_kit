@@ -1,0 +1,40 @@
+## Standard User Entry:
+dn: uid=benr,ou=people,__DOMAIN__
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: SolarisUserAttr
+objectClass: SolarisAuditUser
+givenName: Benjamin
+sn: Rockwood
+cn: Ben Rockwood
+uid: benr
+userPassword: {SSHA}qna9rl6T5EsoHi1vvgEPFRLE0bBWBk8V	<-- Generate this password using "slappasswd"
+uidNumber: 500
+gidNumber: 10
+loginShell: /bin/bash
+homeDirectory: /home/admin
+gecos: Ben Rockwood
+mail: benr@joyent.com
+title: Director of Systems
+employeeNumber: 8
+mobile: 123-123-3333
+telephoneNumber: 123-123-1234
+street: 123 Something Way
+l: Tracy
+st: CA
+postalCode: 90120
+description: KVM User				<-- Set to "KVM User" or  "KVM Appliance Admin" for Avocent (SOP-075)
+SolarisAttrKeyValue: type=normal;profiles=Primary Administrator;auths=solaris.*
+#SolarisUserQualifier:				<-- Delete these if you don't need per-user Audit control
+#SolarisAuditAlways: lo				<-- ""
+#SolarisAuditNever: no				<-- ""
+
+## AutoMount Entry:				<-- Delete this block if you don't need per user automount
+dn: automountKey=benr,automountMapName=auto_home,__DOMAIN__
+objectClass: automount
+objectClass: top
+automountKey: benr
+automountInformation: 10.0.91.10:/home/benr
+

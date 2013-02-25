@@ -1,0 +1,8 @@
+dn: cn=family,ou=group,__DOMAIN__
+objectClass: posixGroup
+objectClass: top
+cn: family     
+gidNumber: 100 
+description: Family Group
+memberUid: benr
+memberUid: nova

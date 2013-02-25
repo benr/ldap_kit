@@ -1,0 +1,296 @@
+
+
+
+
+
+
+
+
+                                                      +Joyent LDAP Kit
+-----------------------------------------------------------------------
+
+
+
+Before you start, you'll need:
+
+1) A CA certificate, and 2 server certs/keys (1 for each OpenLDAP server)
+2) A DIT base DN (ie: dc=joyent,dc=com)
+3) Passwords for: a) "Directory Manager", b) MirrorMode, c) ProxyAgent
+        -> Use: apg -a 0 -m 20 (no /'s please, re-run till you get one without)
+4) IP Addresses for both nodes (admin & public)
+
+
+--------------------------------------------------------------------------------
+| C O N F I G U R A T I O N       W O R K S H E E T                            |
+--------------------------------------------------------------------------------
+
+NODE1 
+ PUBLIC IP:
+ PUBLIC MASK:
+ PUBLIC GW:
+ PUBLIC VLAN:
+
+ ADMIN IP:
+ ADMIN MASK:
+ ADMIN GW:
+ ADMIN VLAN:    n/a
+
+ SERVER CERT:
+ SERVER KEY:
+
+NODE2 
+ PUBLIC IP:
+ PUBLIC MASK:
+ PUBLIC GW:
+ PUBLIC VLAN:
+
+ ADMIN IP:
+ ADMIN MASK:
+ ADMIN GW:
+ ADMIN VLAN: n/a
+
+ SERVER CERT:
+ SERVER KEY:
+
+BOTH:
+ ROOTDN PASSWORD:
+ PROXYDN PASSWORD:
+ MIRRORMODE PASSWORD:
+
+ CA CERT:
+
+ DIRECTORY SUFFIX: 
+ 
+ 
+
+
+================================================================================
+
+                R U N   B O O K
+
+
+
+--------------------------------------------------------------------------------
+| Step 0: Prereq's
+--------------------------------------------------------------------------------
+
+The following packages need to be present for things to work properly on Solaris 10
+or OpenSolaris :
+
+ * SUNWtls SUNWtlsu
+ * SUNWopenldapr SUNWopenldapu
+ * SUNWlldap
+ * SUNWopensslr SUNWopenssl-libraries SUNWopenssl-commands
+ * SUNWlibnet SUNWicu  (Dependancies)
+
+
+
+ *** NOTE *** 
+ This kit was developed for systems running OpenSolaris.  In most ways this
+ continues to apply to SmartOS and Solaris 11, however some aspects, such 
+ as these dependancies are different.  
+ For SmartOS either install OpenLDAP from PKG-SRC or build it yourself.
+ For Solaris 11, please find the appropriate IPS packages for OpenLDAP.
+ *** NOTE ***
+
+
+--------------------------------------------------------------------------------
+| Step 1: Edit Makefile.config
+--------------------------------------------------------------------------------
+
+Change the variables to match your desired configuration.  Please be aware that
+whitespace following values is significant, NO EXTRA SPACES!
+
+
+--------------------------------------------------------------------------------
+| Step 2: Create PKI Cert/Key & Add to pki directory
+--------------------------------------------------------------------------------
+
+On your CA, create a SERVER cert/key pair for your server.  If you are using 
+MirrorMode you should create two, one for each server.  Copy these cert/key
+pairs, plus the CA cert into the pki/ directory of the kit.
+
+PLEASE NOTE!  The key's CN must be the fully qualified name of the LDAP server
+        and match the string returned by "hostname".  Furthermore, clients
+        will need to resolve the IP address of the server against that hostname
+        either via DNS or a local /etc/hosts entry!
+
+If you do not have a private CA, please refer to SOP-(not created yet)
+
+--------------------------------------------------------------------------------
+| Step 3: Setup the Server
+--------------------------------------------------------------------------------
+
+In the LDAP Kit, enter the "svc/" directory and run "make install".  This 
+will remove the default SMF manifest for OpenLDAP (if present) and insert 
+the Joyent one.
+
+Next, enter the "pki/" directory and run "make-certdb.sh".  This will create
+the Solaris Native Client certificate database which will be transfered to 
+clients.
+
+Finally, enter the "openldap/" directory and run "make install".  This will
+generate the slapd.conf, insert both it and the Solaris schema, copy the TLS
+key/certs and secure everything properly.
+
+
+--------------------------------------------------------------------------------
+| Step 4: Generate & Insert the Base DIT
+--------------------------------------------------------------------------------
+
+In the LDAP Kit, enter the "DirectoryBuilder/" directory.  Run "make".  This will
+produce the base LDIF's that form the structure of the Directory Information
+Tree (DIT).  
+
+To add the LDIF's into the directory, start slapd and run "make addbase".
+
+
+
+--------------------------------------------------------------------------------
+| Step 5: Add customized users & groups
+--------------------------------------------------------------------------------
+
+In the LDAP Kit, enter the "DirectoryBuilder/" directory.  There are a variety
+of prepared templates directories:
+
+* users/
+* groups/
+* aliases/
+* hosts/
+* netgroups/
+* projects/
+
+In each, make a copy of "*.copyme" and edit to taste.  Then add it to the
+directory using 'slapadd' or 'ldapadd'.
+
+
+--------------------------------------------------------------------------------
+| Step 6: Setup the Secondary LDAP Server
+--------------------------------------------------------------------------------
+
+On a secondary node (non-global zone preferably) follow steps 1, 2, and 3.
+Alternatively, you may simply snapshot the primary zone and zfs send/recv it to
+the secondary location and modify the zone network configuration.
+
+Once the server is ready, run "slapcat" on the first node to dump the complete
+directory (DIT) to an LDIF.  Transfer that LDIF to the secondary node and
+then "slapadd dump.ldif".
+
+Edit slapd.conf, in the MirrorMode section:
+ * modify the "serverID" from 1 to 2
+ * change the "provider" to match the primary node
+ * change the tls_* file paths to match the secondary tls keys
+
+Now start the secondary server and the two should be in sync.  To test,
+query the secondary node.  Then make a change to the primary and
+query the secondary node again.
+
+
+--------------------------------------------------------------------------------
+| Step 7: Add Solaris clients
+--------------------------------------------------------------------------------
+
+In the LDAP Kit, enter the "tools/" directory and you will find a 
+"deploy_client.sh" script.  Run "make" to create a customized version for your 
+environment.  
+
+Run "make dist" to create a tarball containing the script and neccesities 
+such that it can be transfered to a node with SSH keyed access to all your
+nodes (typically a jumpstart server).
+
+
+When your tarball is in place for deployment, invoke it like so:
+ ./deploy_client -i -h somenode
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+| APPENDIX A: Creating your own CA
+--------------------------------------------------------------------------------
+
+If you need a private CA of your own, the Easy-RSA package is included with
+this kit in "easy-rsa/".   This should be done in a super secure location.
+
+Start by editing "vars", in particular the "KEY_*" vars at the end of the file,
+everything else should be fine.
+
+Next, source vars ("source vars"), run "./clean-all", and then run the 
+"./build_ca" script to create a new clean CA.
+
+With the CA now initialized and a fresh CA cert and key, start creating 
+certs and keys.  For servers, such as LDAP Servers, you MUST use the
+"./build-key-server" script so that its cert contains the nsType "Server",
+otherwise the cert/key will be rejected.  For "normal" client systems
+(typically end users on a VPN or such) use the "./build-key" script.
+
+Please note that the only thing that typically matters in the
+certs you produce is the CN value, so be careful that they are
+fully qualified and appropriate for your use.  
+
+Finally, when creating keys, the ONLY key that should contain a password
+is the CA key.  All others should NOT have a password!
+
+
+
+--------------------------------------------------------------------------------
+| APPENDIX B: LDAP Command Reference
+--------------------------------------------------------------------------------
+
+The following commands are specific to the configuration above, namely a Solaris
+client using native Solaris LDAP tools to access OpenLDAP via TLS:Simple.
+
+PLEASE NOTE!  These commands must be run as root, because only root has read access
+ to the cert databases which are required for TLS.
+
+
+Dump the directory:
+ ldapsearch  -b dc=joyent,dc=com -D "cn=proxyagent,ou=profile,dc=joyent,dc=com" \
+ 	-w 'kaspyadd12d' -h ldap01.joyent.com -ZZ -P /var/ldap  '(cn=*)'
+
+Add an LDIF:
+ ldapadd -D "cn=Directory Manager,dc=joyent,dc=com" -w 'somepassword' \
+	-h ldap01.joyent.com -ZZ -P /var/ldap -f my.ldif
+
+Search for a user:
+ ldapsearch  -b dc=joyent,dc=com -D "cn=proxyagent,ou=profile,dc=joyent,dc=com" \
+	-w 'kaspyadd12d' -h ldap01.joyent.com -ZZ -P /var/ldap  '(uid=benr)'
+
+Modify an entry:
+ ldapmodify -D "cn=Directory Manager,dc=joyent,dc=com" -w 'somepassword' \
+	-h ldap01.joyent.com -ZZ -P /var/ldap -f myMod.ldif
+ ** NOTE: After modifying an entry, you may need to restart svc:/system/name-service-cache:default
+	for it to be noticed.
+
+Delete an entry, and re-add:
+ ldapdelete -D "cn=Directory Manager,dc=joyent,dc=com" -w passw0rd -h ldap02.joyent.com  \
+	-ZZ -P /var/ldap uid=benr,ou=people,dc=joyent,dc=com
+ ldapadd -D "cn=Directory Manager,dc=joyent,dc=com" -w passw0rd -h ldap02.joyent.com  \
+	-ZZ -P /var/ldap -v -f /root/ldap_kit/DirectoryBuilder/users/benr.ldif 
+
+
+
+
+
+  	IMPORTANT! When using TLS the hostname (-h) MUST be the FQDN 
+			which matches the CN of the cert
+
+
+--------------------------------------------------------------------------------
+| APPENDIX C: MOD LDIFs
+--------------------------------------------------------------------------------
+
+The following is an example of a "modify" LDIF which replaces an entry attribute:
+
+dn: cn=Joyent Level 2,ou=SolarisProfAttr,dc=joyent,dc=com
+changetype: modify
+replace: SolarisAttrKeyValue
+SolarisAttrKeyValue: profiles=Network Management,Netw...
+-
+replace: otherAttribute
+otherAttribute: newValue
+-
+...
